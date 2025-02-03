@@ -110,27 +110,24 @@ export default function AvailabilityForm({ initialData }: AvailabilityFormProps)
 
     const updatedWeeks = [...weeks];
 
-    if (slotIndex !== undefined) {
+    const timeArray: TimeInterval[] = [
+      ...updatedWeeks[weekIndex].slots,
+      newValue
+    ];
+    
+    const hasOverlap = checkOverlap(timeArray);
+
+    if ( hasOverlap ) {
+      setError({ ...error, message: "Time slot has over lap, Please check" });
+      return;
+    }
+
+    if ( slotIndex !== undefined ) {
+
       updatedWeeks[weekIndex].slots[slotIndex] = { from: newValue.from, to: newValue.to }; // Update slot
     }
 
-    if (slotIndex == undefined) {
-
-      if (updatedWeeks[weekIndex].slots.length > 0) {
-
-        const timeArray: TimeInterval[] = [
-          ...updatedWeeks[weekIndex].slots,
-          newValue
-        ];
-        
-        const hasOverlap = checkOverlap(timeArray);
-
-        if ( hasOverlap ) {
-          setError({ ...error, message: "Time slot has over lap, Please check" });
-          return;
-        }
-
-      }
+    if ( slotIndex == undefined ) {
 
       updatedWeeks[weekIndex].slots.push({ from: newValue.from, to: newValue.to });
 
