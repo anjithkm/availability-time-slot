@@ -6,10 +6,10 @@ import redis from '@/lib/redis';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (req.method === 'POST') {
+    
     const { user_id, data } = req.body;
 
-    console.log("user_id bakend",user_id)
-    console.log("data backend",data)
+    console.log("user",user_id)
 
     try {
       await redis.set(user_id, JSON.stringify(data));

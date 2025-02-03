@@ -45,6 +45,43 @@ export default function AvailabilityForm({ initialData }: AvailabilityFormProps)
   const [newValue, setNewValue] = useState<any>({ from: '', to: '' });
 
 
+  interface TimeInterval {
+    from: string;
+    to: string;
+  }
+  
+  function convertToMinutes(timeStr: string): number {
+    const period = timeStr.slice(-2);
+    let [hours, minutes] = timeStr.slice(0, -2).split(":").map(Number);
+
+    if (period === 'pm' && hours !== 12) {
+      hours += 12;
+    } else if (period === 'am' && hours === 12) {
+      hours = 0;
+    }
+  
+    return hours * 60 + minutes;
+  }
+  
+  function checkOverlap(intervals: TimeInterval[]): boolean {
+
+    const sortedIntervals = intervals.map(interval => ({
+      from: convertToMinutes(interval.from),
+      to: convertToMinutes(interval.to)
+    })).sort((a, b) => a.from - b.from);
+
+
+    for (let i = 0; i < sortedIntervals.length - 1; i++) {
+      if (sortedIntervals[i].to > sortedIntervals[i + 1].from) {
+        return true;
+      }
+    }
+  
+    return false;
+
+  }
+  
+
   // Handle week selection for slot
   const handleSelect = (weekIndex: number) => {
     const updatedWeeks = [...weeks];
@@ -53,23 +90,10 @@ export default function AvailabilityForm({ initialData }: AvailabilityFormProps)
   };
 
   // Handle adding a new slot
-  const handleAdd = (weekIndex: number) => {
+  const handleAdd = ( weekIndex: number ) => {
     setSelected({ weekIndex: weekIndex, slotIndex: null })
   };
 
-  const compareTime = (firstTime: string, secondTime: string) => {
-
-    const lastTimeFormate = firstTime.slice(-2);
-    const [lastHour, lastMinute] = firstTime.slice(0, -2).split(":").map(Number);
-    const lastTime = (lastTimeFormate === 'am' ? lastHour : lastHour + 12) * 60 + lastMinute;
-
-    const nextTimeFormate = secondTime.slice(-2);
-    const [nextHour, nextMinute] = secondTime.slice(0, -2).split(":").map(Number);
-    const nextTime = (nextTimeFormate === 'am' ? nextHour : nextHour + 12) * 60 + nextMinute;
-
-    return (nextTime > lastTime) ? true : false;
-
-  }
 
   // Handle adding a new slot
   const handleOk = (weekIndex: number, slotIndex?: number) => {
@@ -79,13 +103,14 @@ export default function AvailabilityForm({ initialData }: AvailabilityFormProps)
       return;
     };
 
+    if ( convertToMinutes(newValue.from)  > convertToMinutes(newValue.to) ) {
+      setError({ ...error, message: "Time slot 'From' time should be less than 'To' time, Please check" });
+      return;
+    }
+
     const updatedWeeks = [...weeks];
 
     if (slotIndex !== undefined) {
-      if (!(compareTime(newValue.from, newValue.to))) {
-        setError({ ...error, message: "Time slot has over lap, Please check" });
-        return;
-      }
       updatedWeeks[weekIndex].slots[slotIndex] = { from: newValue.from, to: newValue.to }; // Update slot
     }
 
@@ -93,9 +118,14 @@ export default function AvailabilityForm({ initialData }: AvailabilityFormProps)
 
       if (updatedWeeks[weekIndex].slots.length > 0) {
 
-        const lastSlotTime = updatedWeeks[weekIndex].slots.slice(-1)[0]['to']
+        const timeArray: TimeInterval[] = [
+          ...updatedWeeks[weekIndex].slots,
+          newValue
+        ];
+        
+        const hasOverlap = checkOverlap(timeArray);
 
-        if (!(compareTime(lastSlotTime, newValue.from) && compareTime(newValue.from, newValue.to))) {
+        if ( hasOverlap ) {
           setError({ ...error, message: "Time slot has over lap, Please check" });
           return;
         }
@@ -103,7 +133,6 @@ export default function AvailabilityForm({ initialData }: AvailabilityFormProps)
       }
 
       updatedWeeks[weekIndex].slots.push({ from: newValue.from, to: newValue.to });
-
 
     }
 

@@ -29,7 +29,7 @@ export default function Home() {
         />
         <ol className="list-inside list-none text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
           <li className="mb-2">
-          <a className="text-blue-500" href="http://127.0.0.1/user/availability/usr#12567">Get started by http://127.0.0.1/user/availability/user_id </a>
+          <a className="text-blue-500" href="http://127.0.0.1/user/availability/USER123">Get started by http://127.0.0.1/user/availability/user_id </a>
           </li>
         </ol>
 
